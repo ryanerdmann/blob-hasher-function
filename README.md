@@ -23,20 +23,23 @@ Below are the high-level steps to deploy and configure the function. Depending o
 2. **Create and Deploy the Azure Function**  
    - [Create a new Azure Function App](https://learn.microsoft.com/azure/azure-functions/functions-create-function-app-portal) in the Azure Portal or via the Azure CLI.  
    - Configure [Application Insights](https://learn.microsoft.com/azure/azure-functions/functions-monitoring?tabs=portal) for monitoring and logging.  
-   - Deploy the function code (the `.zip` you downloaded) to your Function App. This can be done using [Azure CLI](https://learn.microsoft.com/azure/azure-functions/functions-deploy-cli?tabs=azure-cli), Visual Studio Code, or other deployment tools.
+   - Deploy the function code (the `.zip` you downloaded) to your Function App. This can be done using [Azure CLI](https://learn.microsoft.com/en-us/azure/azure-functions/deployment-zip-push), Visual Studio Code, or other deployment tools.
 
 3. **Assign a Managed Identity and Grant Required Permissions**  
    - In your Function App’s **Identity** settings, enable a system-assigned managed identity (or user-assigned if you prefer).  
    - Go to your target Storage Account’s **Access Control (IAM)** and add a **role assignment** for the Function App’s managed identity. Make sure to assign the **Storage Blob Data Contributor** role so the function can read and write blob data.
 
-4. **Create an Event Grid Subscription**  
-   - In your Azure Subscription, [create an Event Grid topic or use an existing one](https://learn.microsoft.com/azure/event-grid/).  
-   - Under **Event Subscriptions**, choose **+ Event Subscription** and set the newly deployed Azure Function as the endpoint for `BlobCreatedEvent`.  
+4. **Create an Event Grid System Topic**  
+   - In your Azure Subscription, [create an Event Grid System Topic](https://learn.microsoft.com/en-us/azure/event-grid/create-view-manage-system-topics) for your Storage Account.  
    - Ensure the Event Grid can reach the function endpoint (the Azure Function App should be publicly accessible or using a private endpoint appropriately configured).
 
 5. **Enable Event Notifications on the Storage Account**  
-   - In the Azure Portal for your Storage Account, select **Events** (under **Settings** or **Event Grid**).  
-   - Add or update the event subscription to forward `BlobCreatedEvent` notifications to the Event Grid topic created in step 4. This ensures that blob creation events are sent to your Function.
+   - In the Azure Portal for your Storage Account, select **Events**.  
+   - Under "More Options," select Event Grid Namespace Topic.
+   - Under "Topic Details," ensure the topic created in Step 4 is selected as the destination.
+   - Under "Event Types," select `Blob Created`.
+   - Under "Endpoint Details," select the Azure Function instance.
+   - Under "Additional Features," consider enabling dead lettering and retry policies.
 
 6. **Test the Function**  
    - Upload a blob to the monitored storage container.  
